@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Deal Digital</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="lobby-container" class="hidden"> <!-- Initially hidden -->
+        <h1>Monopoly Deal Lobby</h1>
+        <div id="lobby-info">
+            <p>Game ID: <span id="lobby-game-id"></span> (Share this with friends!)</p>
+            <p>Players: <span id="lobby-player-count">0</span> / <span id="lobby-expected-player-count">0</span></p>
+        </div>
+        <div id="lobby-players">
+            <h2>Joined Players:</h2>
+            <ul id="lobby-player-list">
+                <!-- Player list will be dynamically inserted here -->
+            </ul>
+        </div>
+        <div id="lobby-actions">
+            <button id="lobby-ready-btn" disabled>Ready</button>
+            <button id="lobby-start-game-btn" class="hidden" disabled>Start Game</button>
+        </div>
+    </div>
+
+    <div id="game-container" class="hidden"> <!-- Initially hidden -->
+        <!-- Opponent Ticker Zone -->
+        <div id="opponents-zone">
+            <!-- Opponent panels will be dynamically inserted here -->
+        </div>
+
+        <!-- Central Game Zone -->
+        <div id="central-zone">
+            <div id="draw-pile" class="card-pile">
+                <div class="card back-card" title="Click to play or bank this card"></div>
+                <span class="pile-count">0</span>
+            </div>
+            <div id="discard-pile" class="card-pile">
+                <div class="card empty-pile"></div>
+                <span class="pile-count">0</span>
+            </div>
+            <div id="game-log-display">
+                <button id="show-log-btn">Game History</button>
+                <div id="log-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-button">×</span>
+                        <h2>Game History</h2>
+                        <div id="log-entries" class="scrollable-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Player Zone -->
+        <div id="current-player-zone">
+            <div id="player-info">
+                <h2 id="current-player-name"></h2>
+                <div id="plays-remaining">Plays: <span id="plays-count">0</span>/3</div>
+            </div>
+
+            <div id="player-assets">
+                <div id="player-properties">
+                    <h3>Properties</h3>
+                    <div id="property-sets">
+                        <!-- Property sets will be dynamically inserted here -->
+                    </div>
+                </div>
+                <div id="player-bank">
+                    <h3>Bank (<span id="bank-value">0M</span>)</h3>
+                    <div id="bank-cards">
+                        <!-- Banked cards will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="player-hand">
+                <h3>Your Hand (<span id="hand-count">0</span> cards)</h3>
+                <div id="hand-cards">
+                    <!-- Hand cards will be dynamically inserted here -->
+                </div>
+            </div>
+            <div id="player-actions">
+                <button id="end-turn-btn" disabled>End Turn</button>
+                <!-- Other action buttons (e.g., Pay Debt, Select Target) will appear here as needed via modals -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Pass Device Overlay -->
+    <div id="pass-overlay" class="overlay">
+        <div class="overlay-content">
+            <h2 id="pass-player-name"></h2>
+            <p>Please pass the device to the next player.</p>
+            <button id="continue-game-btn">Continue</button>
+        </div>
+    </div>
+
+    <!-- General Purpose Action Modal (for targeting, payment, etc.) -->
+    <div id="action-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button action-modal-close">×</span>
+            <h2 id="action-modal-title"></h2>
+            <p id="action-modal-message"></p>
+            <div id="action-modal-options">
+                <!-- Dynamic options for targets, payments, etc. -->
+            </div>
+            <div class="modal-buttons">
+                <button id="action-modal-confirm-btn" class="hidden">Confirm</button>
+                <button id="action-modal-cancel-btn" class="hidden">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Condition Modal -->
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button win-modal-close">×</span>
+            <h2 id="win-modal-title"></h2>
+            <p id="win-modal-message"></p>
+            <button id="win-modal-restart-btn">Play Again</button>
+        </div>
+    </div>
+
+
+    <script type="module" src="dist/main.js"></script>
+</body>
+</html>

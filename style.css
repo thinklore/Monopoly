@@ -1,0 +1,635 @@
+:root {
+    --player-hand-height: 150px;
+    --card-width: 80px;
+    --card-height: 120px;
+    --card-border: 1px solid #333;
+    --card-border-radius: 8px;
+    --card-bg: #fff;
+    --main-bg: #28a745; /* Monopoly green */
+    --font-color: #333;
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--main-bg);
+    color: var(--font-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden; /* Prevent scroll on game container */
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    max-width: 1200px; /* Limit max width for desktop */
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    background-color: #f8f9fa; /* Light background for game board */
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative; /* For modals */
+}
+
+/* Opponent Zone (Top) */
+#opponents-zone {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #ced4da;
+    min-height: 100px; /* Reserve space */
+}
+
+.opponent-panel {
+    background-color: #fff;
+    border: var(--card-border);
+    border-radius: var(--card-border-radius);
+    padding: 5px 10px;
+    margin: 5px;
+    font-size: 0.8em;
+    text-align: center;
+    cursor: default; /* Default to not clickable */
+    transition: transform 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 150px; /* Fixed width */
+    flex-shrink: 0;
+}
+
+/* Make opponent panel clickable only when relevant action */
+.opponent-panel[style*="cursor: pointer"] {
+    cursor: pointer;
+}
+
+.opponent-panel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.opponent-panel.active-player {
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+.opponent-properties {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 5px;
+    gap: 3px;
+}
+
+.property-color-indicator {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    border: 1px solid #777;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.6em;
+    color: #fff;
+    font-weight: bold;
+}
+.property-color-indicator.complete {
+    border: 2px solid gold; /* Highlight complete sets */
+    box-shadow: 0 0 5px gold;
+}
+.property-color-indicator span {
+    color: #333; /* Text color for fractions */
+    font-weight: normal;
+}
+
+/* Central Zone */
+#central-zone {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    gap: 50px;
+    position: relative;
+}
+
+.card-pile {
+    width: var(--card-width);
+    height: var(--card-height);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.card-pile .card {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--card-border-radius);
+    background-color: #ccc;
+    border: var(--card-border);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.card-pile .back-card {
+    background-color: #a00; /* Red back for draw pile */
+    background-image: linear-gradient(45deg, #c00 25%, transparent 25%, transparent 75%, #c00 75%),
+                      linear-gradient(45deg, #c00 25%, transparent 25%, transparent 75%, #c00 75%);
+    background-size: 10px 10px;
+    background-position: 0 0, 5px 5px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.card-pile .empty-pile {
+    background-color: #eee;
+    border-style: dashed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #666;
+    font-size: 0.8em;
+    z-index: 1; /* Above any discarded cards if needed */
+}
+.card-pile .empty-pile::before {
+    content: "Discard";
+}
+
+#discard-pile .card:not(.empty-pile) {
+    background-color: #ccc; /* Generic for face-up discard */
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+
+.pile-count {
+    position: absolute;
+    bottom: -20px;
+    font-size: 0.9em;
+    color: var(--font-color);
+}
+
+#game-log-display {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+#game-log-display button {
+    padding: 8px 15px;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Current Player Zone (Bottom) */
+#current-player-zone {
+    display: grid;
+    grid-template-areas:
+        "info actions"
+        "assets assets"
+        "hand hand";
+    grid-template-columns: 1fr auto; /* Info and actions flex, assets/hand full width */
+    padding: 10px;
+    background-color: #e9ecef;
+    border-top: 1px solid #ced4da;
+    gap: 10px;
+}
+
+#player-info {
+    grid-area: info;
+    text-align: left;
+    font-size: 1.1em;
+}
+#plays-remaining {
+    font-size: 0.9em;
+    color: #555;
+}
+#player-actions {
+    grid-area: actions;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+#end-turn-btn {
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+#end-turn-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#player-assets {
+    grid-area: assets;
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    min-height: 150px; /* Allow properties/bank to grow */
+}
+
+#player-properties, #player-bank {
+    flex: 1;
+    min-width: 250px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.05);
+}
+
+#property-sets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 50px;
+}
+
+.property-set {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.property-set.complete {
+    border-color: gold;
+    box-shadow: 0 0 8px gold;
+}
+.property-set-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+.property-set-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.property-set-cards .card {
+    height: calc(var(--card-height) * 0.7); /* Smaller cards in sets */
+    width: calc(var(--card-width) * 0.7);
+    cursor: default; /* Default to not clickable */
+}
+.property-set-cards .card[style*="cursor: pointer"] { /* Apply pointer if explicitly set */
+    cursor: pointer;
+}
+
+#bank-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-height: 50px;
+}
+#bank-cards .card {
+    height: calc(var(--card-height) * 0.7);
+    width: calc(var(--card-width) * 0.7);
+    cursor: default; /* Default to not clickable */
+}
+#bank-cards .card[style*="cursor: pointer"] { /* Apply pointer if explicitly set */
+    cursor: pointer;
+}
+
+#player-hand {
+    grid-area: hand;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    min-height: var(--player-hand-height);
+}
+
+#hand-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: calc(var(--card-height) + 20px); /* Ensure space for cards */
+    justify-content: center;
+}
+
+.card {
+    width: var(--card-width);
+    height: var(--card-height);
+    border: var(--card-border);
+    border-radius: var(--card-border-radius);
+    background-color: var(--card-bg);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    box-sizing: border-box;
+    font-size: 0.7em;
+    position: relative;
+    cursor: default; /* Default to not clickable */
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+    opacity: 0.7; /* Dim non-playable cards */
+}
+
+/* Specific styling for playable cards */
+.card.playable-card {
+    cursor: pointer;
+    opacity: 1; /* Full opacity for playable cards */
+}
+
+.card.playable-card:hover { /* Only hover if playable */
+    transform: translateY(-5px);
+    box-shadow: 3px 5px 8px rgba(0,0,0,0.3);
+}
+
+.card.selected-for-action {
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.7);
+    transform: translateY(-8px);
+}
+
+.card .card-name {
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 3px;
+}
+.card .card-type {
+    font-size: 0.8em;
+    color: #666;
+    text-align: center;
+}
+.card .bank-value {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: green;
+}
+.card .card-details {
+    font-size: 0.7em;
+    color: #888;
+    text-align: center;
+}
+
+/* Specific card type styling for visual differentiation */
+.card[data-type="Money"] { background-color: #e6ffe6; } /* Light green */
+.card[data-type="Action"] { background-color: #ffe6e6; } /* Light red */
+.card[data-type="Rent"] { background-color: #e6f0ff; } /* Light blue */
+.card[data-type="Property"] { background-color: #f0f0e6; } /* Light yellow */
+.card[data-type="PropertyWildcard"] { background-color: #f0e6ff; } /* Light purple */
+
+
+/* Property Color Bands (background for property-color-indicator and card-color-band) - Corrected for spaces */
+.color-band-Brown, .property-color-indicator.Brown { background-color: #7b3f00; }
+.color-band-Light-Blue, .property-color-indicator.Light-Blue { background-color: #87ceeb; } 
+.color-band-Pink, .property-color-indicator.Pink { background-color: #ff69b4; }
+.color-band-Orange, .property-color-indicator.Orange { background-color: #ffa500; }
+.color-band-Red, .property-color-indicator.Red { background-color: #ff0000; }
+.color-band-Yellow, .property-color-indicator.Yellow { background-color: #ffff00; }
+.color-band-Green, .property-color-indicator.Green { background-color: #008000; }
+.color-band-Dark-Blue, .property-color-indicator.Dark-Blue { background-color: #00008b; } 
+.color-band-Railroad, .property-color-indicator.Railroad { background-color: #333; color: white; } 
+.color-band-Utility, .property-color-indicator.Utility { background-color: #999; }
+
+/* Overlays and Modals */
+.overlay {
+    /* Removed for multi-tab */
+    display: none !important;
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1001; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#continue-game-btn, .modal-buttons button {
+    padding: 12px 25px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    margin-top: 20px;
+}
+.modal-buttons button {
+    margin: 10px;
+}
+
+#log-entries {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    padding: 10px;
+    margin-top: 15px;
+    text-align: left;
+    background-color: #f9f9f9;
+}
+#log-entries p {
+    margin: 5px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.9em;
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Specific styling for action modal options */
+#action-modal-options {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-option-card {
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.modal-option-card:hover {
+    background-color: #e0e0e0;
+}
+.modal-option-card.selected {
+    border-color: var(--primary-color);
+    background-color: #e6f0ff;
+    box-shadow: 0 0 5px var(--primary-color);
+}
+.modal-option-card.card-placeholder {
+    width: calc(var(--card-width) * 0.7);
+    height: calc(var(--card-height) * 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px dashed #ccc;
+    color: #999;
+}
+/* style.css */
+
+/* ... (existing styles) ... */
+
+#lobby-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+    background-color: #f0f8ff; /* Light background for lobby */
+    color: #333;
+    text-align: center;
+}
+
+#lobby-container h1 {
+    color: #4CAF50;
+    margin-bottom: 20px;
+}
+
+#lobby-info {
+    margin-bottom: 30px;
+    font-size: 1.1em;
+}
+
+#lobby-players {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 80%;
+    max-width: 400px;
+    margin-bottom: 30px;
+}
+
+#lobby-players h2 {
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+#lobby-player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#lobby-player-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 1.1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#lobby-player-list li:last-child {
+    border-bottom: none;
+}
+
+#lobby-player-list li.ready {
+    font-weight: bold;
+    color: #28a745; /* Green for ready players */
+}
+
+#lobby-player-list li.my-player {
+    background-color: #e0f2f7;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 5px;
+}
+
+#lobby-actions button {
+    padding: 12px 25px;
+    font-size: 1.2em;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#lobby-ready-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+#lobby-ready-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+#lobby-ready-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#lobby-start-game-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+#lobby-start-game-btn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+#lobby-start-game-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* General hidden utility class */
+.hidden {
+    display: none !important;
+}
+
+/* Ensure game-container is visible when not hidden */
+#game-container:not(.hidden) {
+    display: flex; /* Or whatever display type it needs to be */
+    flex-direction: column;
+}
